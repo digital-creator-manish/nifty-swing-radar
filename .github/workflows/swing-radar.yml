@@ -1,0 +1,67 @@
+name: Nifty Swing Radar
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Run without sending Telegram alert or updating trades_log.csv"
+        required: false
+        default: false
+        type: boolean
+  schedule:
+    # Runs hourly during NSE weekday hours (IST = UTC+5:30):
+    # 09:35, 10:35, 11:35, 12:35, 13:35, 14:35 IST (Mon-Fri)
+    - cron: "5 4-9 * * 1-5"
+    # 15:10 IST final pre-close scan (Mon-Fri)
+    - cron: "40 9 * * 1-5"
+    # To run 24/7 every hour instead, replace the crons above with:
+    # - cron: "0 * * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Nifty Swing Radar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MAX_RISK_INR: ${{ vars.MAX_RISK_INR || '250' }}
+          TOP_N: ${{ vars.TOP_N || '3' }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            python scanner.py --dry-run
+          else
+            python scanner.py
+          fi
+
+      - name: Save trades_log.csv back to repo
+        if: ${{ inputs.dry_run != true }}
+        run: |
+          if [ -f trades_log.csv ] && ! git diff --quiet -- trades_log.csv 2>/dev/null; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add trades_log.csv
+            git commit -m "Log swing radar signals ($(date -u +%Y-%m-%d))"
+            git push
+          elif [ -f trades_log.csv ] && [ -n "$(git status --porcelain trades_log.csv)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add trades_log.csv
+            git commit -m "Initialize trades_log.csv"
+            git push
+          fi
