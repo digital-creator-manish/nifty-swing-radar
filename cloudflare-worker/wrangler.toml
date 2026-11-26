@@ -1,0 +1,7 @@
+name = "nifty-swing-radar-relay"
+main = "worker.js"
+compatibility_date = "2026-01-01"
+
+[vars]
+GITHUB_OWNER = "digital-creator-manish"
+GITHUB_REPO = "nifty-swing-radar"

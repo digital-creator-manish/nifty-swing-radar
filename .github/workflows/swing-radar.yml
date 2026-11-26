@@ -8,6 +8,16 @@ on:
         required: false
         default: false
         type: boolean
+      max_risk_inr:
+        description: "Optional override for MAX_RISK_INR (leave blank for default)"
+        required: false
+        default: ""
+        type: string
+      top_n:
+        description: "Optional override for TOP_N (leave blank for default)"
+        required: false
+        default: ""
+        type: string
   schedule:
     # Runs hourly during NSE weekday hours (IST = UTC+5:30):
     # 09:35, 10:35, 11:35, 12:35, 13:35, 14:35 IST (Mon-Fri)
@@ -40,8 +50,8 @@ jobs:
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          MAX_RISK_INR: ${{ vars.MAX_RISK_INR || '250' }}
-          TOP_N: ${{ vars.TOP_N || '3' }}
+          MAX_RISK_INR: ${{ inputs.max_risk_inr || vars.MAX_RISK_INR || '250' }}
+          TOP_N: ${{ inputs.top_n || vars.TOP_N || '3' }}
         run: |
           if [ "${{ inputs.dry_run }}" = "true" ]; then
             python scanner.py --dry-run

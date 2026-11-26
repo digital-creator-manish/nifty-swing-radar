@@ -94,3 +94,29 @@ A ready-to-use workflow is included at `.github/workflows/swing-radar.yml` (runs
    - `TELEGRAM_CHAT_ID`
 3. *(Optional)* Under **Variables**, add `MAX_RISK_INR` (default `250`) and `TOP_N` (default `3`).
 4. Open the **Actions** tab and click **Run workflow** to test immediately.
+
+### Two-Way Telegram Remote Control (Optional — Cloudflare Worker)
+To trigger scans directly from Telegram using `/scan`, `/scan 500`, or `/status`, deploy `cloudflare-worker/worker.js` to Cloudflare Workers (free tier):
+
+1. Create a **Fine-Grained GitHub Personal Access Token** (`github.com/settings/tokens?type=beta`) scoped **only** to `nifty-swing-radar` with:
+   - **Actions:** Read and write
+   - **Contents:** Read-only (for `/status`)
+2. Deploy `cloudflare-worker/worker.js` in the Cloudflare Dashboard (Workers & Pages → Create Worker, paste `worker.js`, and deploy) or with Wrangler:
+   ```bash
+   cd cloudflare-worker
+   npx wrangler deploy
+   ```
+3. Add these **Variables & Secrets** to your Worker:
+   - `GITHUB_OWNER` = `digital-creator-manish`
+   - `GITHUB_REPO` = `nifty-swing-radar`
+   - `TELEGRAM_BOT_TOKEN` = your BotFather token (Secret)
+   - `ALLOWED_CHAT_ID` = your numeric Telegram Chat ID (Secret)
+   - `WEBHOOK_SECRET` = any random password string you invent, e.g. `my_secret_9821` (Secret)
+   - `GITHUB_TOKEN` = your fine-grained GitHub PAT (Secret)
+4. Register the webhook with Telegram once (open in browser or run with `curl`):
+   ```bash
+   curl -X POST "https://api.telegram.org/bot<TELEGRAM_BOT_TOKEN>/setWebhook" \
+     -H "Content-Type: application/json" \
+     -d '{"url": "https://<your-worker>.workers.dev", "secret_token": "<WEBHOOK_SECRET>"}'
+   ```
+5. Send `/help` or `/scan` to your bot in Telegram!
