@@ -122,6 +122,24 @@ export default {
     );
     return new Response("OK", { status: 200 });
   },
+
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(
+      (async () => {
+        const ghRes = await triggerWorkflow(env, {
+          dry_run: "false",
+          max_risk_inr: "",
+        });
+        if (!ghRes.ok && env.TELEGRAM_BOT_TOKEN && env.ALLOWED_CHAT_ID) {
+          await sendTelegram(
+            env.TELEGRAM_BOT_TOKEN,
+            String(env.ALLOWED_CHAT_ID).trim(),
+            `Hourly cron (${controller.cron}) failed to trigger GitHub Actions (${ghRes.status}): ${ghRes.error}`
+          );
+        }
+      })()
+    );
+  },
 };
 
 async function triggerWorkflow(env, inputs) {

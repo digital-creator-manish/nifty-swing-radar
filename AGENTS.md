@@ -32,9 +32,9 @@ scanner.py ──▶ Yahoo Finance (.NS) + ATR sizing ──▶ Telegram sendMes
 - `scanner.py` — Core CLI scanner, 3-filter rule engine, ATR position sizing, Telegram `sendMessage` sender (with plain-text fallback and sanitized error handling), `--dry-run`, and `--top` flags.
 - `watchlist.py` — `NIFTY_100_TICKERS` list (`.NS` suffix for Yahoo Finance; `TATAMOTORS.NS` was replaced by post-demerger `TMCV.NS` & `TMPV.NS`, and `LTIM.NS` was removed due to 404).
 - `logger.py` — Appends triggered setups to `trades_log.csv` (`date,symbol,entry,stop_loss,target,qty,capital_required,vol_ratio,status`).
-- `.github/workflows/swing-radar.yml` — Scheduled (`5 4-9 * * 1-5` and `40 9 * * 1-5` UTC) and `workflow_dispatch` runner (`dry_run`, `max_risk_inr`, `top_n` inputs). Commits `trades_log.csv` changes back to `main`.
-- `cloudflare-worker/worker.js` — Webhook handler for `/start`, `/help`, `/scan [risk]`, `/dryrun [risk]`, and `/status`.
-- `cloudflare-worker/wrangler.toml` — Worker config (`nifty-swing-radar-relay`).
+- `.github/workflows/swing-radar.yml` — Triggered by Cloudflare Cron (`0 * * * *` hourly 24/7) and `workflow_dispatch` (`dry_run`, `max_risk_inr`, `top_n` inputs). Commits `trades_log.csv` changes back to `main`.
+- `cloudflare-worker/worker.js` — Webhook handler (`/start`, `/help`, `/scan [risk]`, `/dryrun [risk]`, `/status`) plus `scheduled()` Cron handler triggering GitHub Actions every hour (`0 * * * *`).
+- `cloudflare-worker/wrangler.toml` — Worker config (`nifty-swing-radar-relay`, cron `0 * * * *`).
 - `.env.example` — Template for `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `MAX_RISK_INR`, `TOP_N`.
 - `requirements.txt` — `yfinance`, `pandas`, `requests`, `python-dotenv`.
 

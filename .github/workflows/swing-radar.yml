@@ -18,14 +18,10 @@ on:
         required: false
         default: ""
         type: string
-  schedule:
-    # Runs hourly during NSE weekday hours (IST = UTC+5:30):
-    # 09:35, 10:35, 11:35, 12:35, 13:35, 14:35 IST (Mon-Fri)
-    - cron: "5 4-9 * * 1-5"
-    # 15:10 IST final pre-close scan (Mon-Fri)
-    - cron: "40 9 * * 1-5"
-    # To run 24/7 every hour instead, replace the crons above with:
-    # - cron: "0 * * * *"
+  # Primary hourly schedule runs reliably via Cloudflare Worker Cron Trigger (0 * * * *).
+  # Uncomment below only if you disable the Cloudflare Worker Cron Trigger:
+  # schedule:
+  #   - cron: "0 * * * *"
 
 permissions:
   contents: write
